@@ -1,0 +1,34 @@
+// SQLite for zero-setup local dev.
+// For Postgres: set provider = "postgresql" and DATABASE_URL to a postgres:// URL.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Claim {
+  id          String       @id @default(uuid())
+  text        String
+  productName String?
+  createdAt   DateTime     @default(now())
+  assessments Assessment[]
+}
+
+model Assessment {
+  id          String   @id @default(uuid())
+  claimId     String
+  claim       Claim    @relation(fields: [claimId], references: [id])
+  evidence    String
+  justified   Boolean
+  confidence  Float // 0..1
+  reasoning   String
+  model       String // which LLM produced the verdict (audit)
+  rawResponse Json
+  createdAt   DateTime @default(now())
+
+  @@index([claimId])
+  @@index([createdAt])
+}
